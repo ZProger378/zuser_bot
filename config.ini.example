@@ -1,0 +1,18 @@
+[pyrogram]
+name = просто_имя_файла_сессии_обычно_имя_пользователя
+api_id = 1000000
+api_hash = 37арыв89срвыр9438авл
+phone_number = номер_телефона
+
+[TeleBot]
+bot_token = токен_бота_полученный_у_бот_фатхера
+
+[OpenRouter]
+api_key = sk-or-токен_опероутера
+
+[Kandinsky]
+api_key = ключ_кандинского
+secret_key = секрет_кандинского
+
+[imgBB]
+api_key = ключ_imgbb
