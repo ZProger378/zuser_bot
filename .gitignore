@@ -1,6 +1,8 @@
 .idea
 __pycache__
 config.ini
+py_log.log
+test.py
 downloads/*
 *.session
 *.session-journal

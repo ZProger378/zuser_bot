@@ -60,13 +60,15 @@ def chat_handler(client, message):
             command = message.text.split(" ")[0]
             prompt = message.text.replace(command, "")
             img_url = None
-        result = f"**{prompt}**\n\n" + chatbot(prompt, img=img_url)  # Отправка запроса в нейросеть
     else:  # Фото
         command = message.caption.split(" ")[0]
         prompt = message.caption.replace(command, "")
         file = user.download_media(message)  # Загрузка картинки локально
         img_url = upload_photo(file)  # Загрузка в облако и получение прямой ссылки
-        result = f"**{prompt}**\n\n" + chatbot(prompt, img=img_url)  # Запрос в нейросеть
+    try:
+        result = f"**{prompt}**\n\n" + chatbot(prompt, img=img_url)  # Отправка запроса в нейросеть
+    except Exception as e:
+        result = f"**{prompt}**\n\nОшибка генерации: ```{e}```"
 
     ####################
     # Вывод результата #
