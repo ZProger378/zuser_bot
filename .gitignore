@@ -6,3 +6,5 @@ test.py
 downloads/*
 *.session
 *.session-journal
+pyrightconfig.json
+venv

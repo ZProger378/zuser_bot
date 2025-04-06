@@ -3,6 +3,9 @@ import os
 # Для задержки в анимациях
 from time import sleep
 
+# Клавиатуры
+import markups
+
 # PyroGram и БЛА-БЛА-БЛА
 import pyrogram.enums
 from pyrogram import filters
@@ -101,6 +104,7 @@ def chat_handler(client, message):
             user.send_message(message.chat.id, text.replace("  ", "\n\n"))
 
 
+
 # Kandinsky
 @user.on_message(filters.command(["img", "gen", "сгенерировать", "изображение", "картинка"]) & filters.me)
 def kandinsky_handler(client, message):
@@ -132,6 +136,7 @@ def kandinsky_handler(client, message):
             user.edit_message_text(message.chat.id, message.id, f"Ошибка в процессе генерации изображения")
         except FloodWait as e:
             sleep(e.x)
+
 
 
 # 11.09.2001 - на всякий случай скажу, что кодил крайне осуждающе
@@ -170,6 +175,7 @@ def _11_11_handler(client, message):
         user.edit_message_text(message.chat.id, message.id, "🔥")
     except FloodWait as e:
         sleep(e.x)
+
 
 
 # Та самая хрень, что тебе никогда не понадобится, если ты это читаешь
@@ -215,6 +221,7 @@ def love_handler(client, message):
         sleep(1)
 
 
+
 # Кидает характеристики чата и сообщения
 @user.on_message(filters.command(["info", "инфа"]) & filters.me)
 def info_handler(client, message):
@@ -255,6 +262,7 @@ def info_handler(client, message):
                                        parse_mode=pyrogram.enums.ParseMode.HTML)
         except FloodWait as e:
             sleep(e.x)
+
 
 
 # Составляет статистику наиболее часто используемых слов (НЕ ЮЗАТЬ В КРУПНЫХ ЧАТАХ)
@@ -373,6 +381,60 @@ def statistic_handler(client, message):
                                        f"{senders_stat}")
 
 
+
+@user.on_message(filters.chat(bot.get_me().id) & filters.me)
+def bot_handler(client, message):
+    command = message.text
+    user_id = message.from_user.id
+    if command == "/start" or command == "Профиль":
+        user_info = user.get_me()
+        info = f"<b><i>{user_info.first_name}</i></b>\n\n<b>ID:</b> <code>{user_info.id}</code>\n<b>Username:</b> {'@' + user_info.username if user_info.username else 'Нет'}\n<b>Premium:</b> {'Да' if user_info.is_premium else 'Нет'}"
+        photos = client.get_chat_photos(user_id)
+        photos = [*photos]
+        if len(photos) > 0:
+            # Получаем ссылку на первую фотографию профиля (аватарку)
+            photo_file = photos[0].file_id
+            # Загружаем фотографию
+            downloaded_file = client.download_media(photo_file)
+            # Отправляю
+            bot.send_photo(user_id, photo=open(str(downloaded_file), "rb"), caption=info, reply_markup=markups.main_markup())
+            os.remove(str(downloaded_file))
+        else:
+            bot.send_message(user_id, info, reply_markup=markups.main_markup())
+
+    elif command == "Тест ИИ-функций":
+        mes = bot.send_message(user_id, f"<b>Проверка работоспособности ИИ-функций</b>\n\n<b>Запрос к ИИ (без картинки):</b> <i>Загрузка</i>\n<b>Запрос к ИИ (с картинкой):</b> <i>Загрузка</i>\n<b>Kandinsky:</b> <i>Загрузка</i>")
+        try:
+            chatbot("hi", None)
+        except:
+            test_1 = False
+        else:
+            test_1 = True
+        bot.edit_message_text(chat_id=mes.chat.id, message_id=mes.id,
+                              text=f"<b>Проверка работоспособности ИИ-функций</b>\n\n<b>Запрос к ИИ (без картинки):</b> <i>{'OK' if test_1 else 'ERROR'}</i>\n<b>Запрос к ИИ (с картинкой):</b> <i>Загрузка</i>\n<b>Kandinsky:</b> <i>Загрузка</i>")
+        try:
+            chatbot("hi", "https://memchik.ru//images/memes/61994612b1c7e34675112608.jpg")
+        except:
+            test_2 = False
+        else:
+            test_2 = True
+        bot.edit_message_text(chat_id=mes.chat.id, message_id=mes.id,
+                              text=f"<b>Проверка работоспособности ИИ-функций</b>\n\n<b>Запрос к ИИ (без картинки):</b> <i>{'OK' if test_1 else 'ERROR'}</i>\n<b>Запрос к ИИ (с картинкой):</b> <i>{'OK' if test_2 else 'ERROR'}</i>\n<b>Kandinsky:</b> <i>Загрузка</i>")
+        try:
+            kandinsky.generate_image("blue sky")
+        except:
+            test_3 = False
+        else:
+            test_3 = True
+        bot.edit_message_text(chat_id=mes.chat.id, message_id=mes.id,
+                              text=f"<b>Проверка работоспособности ИИ-функций</b>\n\n<b>Запрос к ИИ (без картинки):</b> <i>{'OK' if test_1 else 'ERROR'}</i>\n<b>Запрос к ИИ (с картинкой):</b> <i>{'OK' if test_2 else 'ERROR'}</i>\n<b>Kandinsky:</b> <i>{'OK' if test_3 else 'ERROR'}</i>")
+
+
+
+    elif command == "Скачать логи":
+        with open("py_log.log") as f:
+            bot.send_document(user_id, f, caption="Логи")
+
 # Хэндлер всех сообщений
 @user.on_message()
 def message_handler(client, message):
@@ -429,6 +491,7 @@ def message_handler(client, message):
             edit_message(message, message.text or message.caption)
 
 
+
 # Отлавливает удалённые сообщения
 @user.on_deleted_messages()
 def handle_deleted_messages(client, messages):
@@ -454,6 +517,7 @@ def edit_message(message, new_text):
             user.edit_message_caption(message.chat.id, message.id, new_text)
     except FloodWait as e:
         sleep(e.x)
+
 
 
 # Запуск бота и информирование в консоли
