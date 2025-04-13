@@ -104,7 +104,7 @@ def chat_handler(client, message):
         texts = [result[i:i + 4096] for i in range(0, len(result), 4096)]
         # Отправка ответа кусками
         for text in texts:
-            user.send_message(message.chat.id, text.replace("  ", "\n\n"))
+            user.send_message(message.chat.id, text)
 
 
 
@@ -438,6 +438,7 @@ def bot_handler(client, message):
             bot.send_document(user_id, f, caption="Логи")
 
     elif command == "Настройки ⚙️":
+        # Чтение файла настроек
         with open("settings.json") as f:
             settings = json.load(f)
         bot.send_message(message.from_user.id, f"<b>Настройки</b>\n\n"

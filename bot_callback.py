@@ -4,16 +4,18 @@ import json
 
 print("[i] Панель управления ботом запущена")
 
-
+# Из-за того, что api telegram не позволяет от лица юзера напрямую получать каллбэки приходится брать их в хэндреле бота
 @bot.callback_query_handler(lambda call: True)
 def callback(call):
     data = call.data
     message = call.message
+    # Чтение настроек
     with open("settings.json") as f:
         settings = json.load(f)
     animated_words = settings['animation']['animated_words'] 
     if data == "settings_laughter":
         settings['animation']['laughter'] = not settings['animation']['laughter']
+        # Запись новых настроек
         with open("settings.json", "w") as f:
             json.dump(settings, f, indent=4, ensure_ascii=False)
         bot.edit_message_text(chat_id=message.chat.id, message_id=message.id,
@@ -39,15 +41,18 @@ def callback(call):
                               text=f"Выберите <i>слова</i>, которые <b>хотите удалить</b>",
                               reply_markup=markups.delete_words_markup(animated_words))
     elif data.startswith("delete_"):
-        word = data.split("_")[-1]
-        settings['animation']['animated_words'].remove(word)
+        word = data.split("_")[-1]  # Получение слова, которое нужно удалить
+        settings['animation']['animated_words'].remove(word)  # Удаление нужного слова из настроек
+        # Запись новых настроек
         with open("settings.json", "w") as f:
             json.dump(settings, f, indent=4, ensure_ascii=False)
         bot.edit_message_text(chat_id=message.chat.id, message_id=message.id,
                               text=f"<b>Слово удалено</b> ✅",
                               reply_markup=markups.to_settings_markup())
     elif data.startswith("edit_model_"):
+        # Получение конкретной позиции в настройках
         model = f"current_model_{data.split('_')[-1]}"
+        # Получение текущего значения позиции
         models = settings['models']
         bot.edit_message_text(chat_id=message.chat.id, message_id=message.id,
                               text=f"Выберите <b>модель</b>",
@@ -56,6 +61,7 @@ def callback(call):
         model = f"current_model_{data.split('_')[-2]}"
         selected_model = data.split("_")[-1]
         settings['models'][model] = selected_model
+        # Запись новых настроек
         with open("settings.json", "w") as f:
             json.dump(settings, f, indent=4, ensure_ascii=False)
         models = settings['models']
@@ -76,11 +82,13 @@ def add_word(message):
     word = message.text
     with open("settings.json") as f:
         settings = json.load(f)
-    settings['animation']['animated_words'].append(word)
+    settings['animation']['animated_words'].append(word)  # Добавление слова
+    # Запись
     with open("settings.json", "w") as f:
         json.dump(settings, f, indent=4, ensure_ascii=False)
     bot.send_message(message.chat.id, f"<b>Слово добавлено</b> ✅",
                      reply_markup=markups.to_settings_markup())
+
 
 bot.polling(none_stop=True, interval=0)
 
