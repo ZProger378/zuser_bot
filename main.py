@@ -3,6 +3,9 @@ import os
 # Для задержки в анимациях
 from time import sleep
 
+# Для работы с настройками
+import json
+
 # Клавиатуры
 import markups
 
@@ -381,12 +384,12 @@ def statistic_handler(client, message):
                                        f"{senders_stat}")
 
 
-
+# Хэндлер бота
 @user.on_message(filters.chat(bot.get_me().id) & filters.me)
 def bot_handler(client, message):
     command = message.text
     user_id = message.from_user.id
-    if command == "/start" or command == "Профиль":
+    if command == "/start" or command == "Профиль 👤":
         user_info = user.get_me()
         info = f"<b><i>{user_info.first_name}</i></b>\n\n<b>ID:</b> <code>{user_info.id}</code>\n<b>Username:</b> {'@' + user_info.username if user_info.username else 'Нет'}\n<b>Premium:</b> {'Да' if user_info.is_premium else 'Нет'}"
         photos = client.get_chat_photos(user_id)
@@ -402,7 +405,7 @@ def bot_handler(client, message):
         else:
             bot.send_message(user_id, info, reply_markup=markups.main_markup())
 
-    elif command == "Тест ИИ-функций":
+    elif command == "Тест ИИ-функций 🟢":
         mes = bot.send_message(user_id, f"<b>Проверка работоспособности ИИ-функций</b>\n\n<b>Запрос к ИИ (без картинки):</b> <i>Загрузка</i>\n<b>Запрос к ИИ (с картинкой):</b> <i>Загрузка</i>\n<b>Kandinsky:</b> <i>Загрузка</i>")
         try:
             chatbot("hi", None)
@@ -430,10 +433,17 @@ def bot_handler(client, message):
                               text=f"<b>Проверка работоспособности ИИ-функций</b>\n\n<b>Запрос к ИИ (без картинки):</b> <i>{'OK' if test_1 else 'ERROR'}</i>\n<b>Запрос к ИИ (с картинкой):</b> <i>{'OK' if test_2 else 'ERROR'}</i>\n<b>Kandinsky:</b> <i>{'OK' if test_3 else 'ERROR'}</i>")
 
 
-
-    elif command == "Скачать логи":
+    elif command == "Скачать логи 📑":
         with open("py_log.log") as f:
             bot.send_document(user_id, f, caption="Логи")
+
+    elif command == "Настройки ⚙️":
+        with open("settings.json") as f:
+            settings = json.load(f)
+        bot.send_message(message.from_user.id, f"<b>Настройки</b>\n\n"
+                                               f"<b>Текущая модель для text2text</b>: <code>{settings['models']['current_model_1']}</code>\n" 
+                                               f"<b>Текущая модель для img2text</b>: <code>{settings['models']['current_model_2']}</code>", 
+                         reply_markup=markups.settings_markup(settings))
 
 # Хэндлер всех сообщений
 @user.on_message()
@@ -448,7 +458,8 @@ def message_handler(client, message):
     is_bot = message.from_user.is_bot
     is_self = message.from_user.is_self
     text = (message.text or message.caption or "").lower()
-
+    with open("settings.json") as f:
+        settings = json.load(f)
     if not is_self and is_private and not is_bot:
         # Сохраняем сообщение, если оно отправлено пользователем в личные сообщения
         message_store[message.id] = {
@@ -464,7 +475,7 @@ def message_handler(client, message):
         unique_chars = ""
         for i in text: unique_chars += i if i not in unique_chars else ""
 
-        if ("ха" in unique_chars or "ах" in unique_chars) and len(unique_chars) <= 4:
+        if ("ха" in unique_chars or "ах" in unique_chars) and len(unique_chars) <= 4 and settings['animation']['laughter']:
             # Эффект случайного выделения букв при смехе
             for _ in range(10):
                 bigs = {randint(0, len(text) - 1) for _ in range(int(len(text) // 1.2))}
@@ -472,7 +483,7 @@ def message_handler(client, message):
                 edit_message(message, new_text)
                 sleep(0.7)
 
-        elif unique_chars in ["жиза", "имба", "ахуеть", "ебать", "блять"]:
+        elif unique_chars in settings['animation']['animated_words']:
             # Эффект покачивания текста
             for _ in range(3):
                 for up_pos in range(len(text)):
@@ -520,5 +531,6 @@ def edit_message(message, new_text):
 
 
 
-# Запуск бота и информирование в консоли
-user.run(print("[i] Бот запущен"))
+if __name__ == "__main__":
+    # Запуск бота и информирование в консоли
+    user.run(print("[i] Бот запущен"))

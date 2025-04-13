@@ -1,14 +1,16 @@
 from config import client
 from config import logging
+import json
 
-
-models = ["google/gemini-2.0-pro-exp-02-05:free", "google/gemini-2.0-flash-exp:free", "google/gemini-2.0-flash-lite-001", "google/gemini-flash-1.5-8b"]
+with open("settings.json") as f:
+    settings = json.load(f)
+    
 def chatbot(prompt, img):
     if img is None:  # Если нет картинки
-        model = models[1]  # Использование 2 модели
+        model = settings['models']['current_model_1']
         content = [{"type": "text", "text": prompt}]
     else:  # Есть картинка
-        model = models[1]  # Использование 1 модели
+        model = settings['models']['current_model_2']
         # Прикрепление к запросу ссылки на изображение
         content = [{"type": "text", "text": prompt}, { "type": "image_url", "image_url": {"url": img}}]
 
