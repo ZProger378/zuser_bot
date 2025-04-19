@@ -1,4 +1,5 @@
-from config import bot
+from config import bot, hf_conf
+from fnmatch import fnmatch
 import markups
 import json
 
@@ -77,6 +78,26 @@ def callback(call):
                                    f"<b>Текущая модель для img2text</b>: <code>{settings['models']['current_model_2']}</code>", 
         reply_markup=markups.settings_markup(settings))
 
+    elif data == "deleted_messages":
+        send_deleted_messages = not settings['send_deleted_messages']
+        settings['send_deleted_messages'] = send_deleted_messages
+        # Запись новых настроек
+        with open("settings.json", "w") as f:
+            json.dump(settings, f, indent=4, ensure_ascii=False)
+        bot.edit_message_text(chat_id=message.chat.id, message_id=message.id,
+                              text=f"<b>Настройки</b>\n\n"
+                                   f"<b>Текущая модель для text2text</b>: <code>{settings['models']['current_model_1']}</code>\n" 
+                                   f"<b>Текущая модель для img2text</b>: <code>{settings['models']['current_model_2']}</code>", 
+        reply_markup=markups.settings_markup(settings))
+
+    elif data == "add_model":
+        bot.edit_message_text(chat_id=message.chat.id, message_id=message.id,
+                              text=f"Пришлите модель <b>HuggingFace</b>, "
+                                   f"которая поддерживается провайдером <b>{hf_conf['provider']}</b>\n\n"
+                                   f"<b>Пример</b>: <code>meta-llama/Llama-4-Maverick-17B-128E-Instruct</code>",
+                              reply_markup=markups.to_settings_markup())
+        bot.register_next_step_handler(message, add_model_handler)
+
 
 def add_word(message):
     word = message.text
@@ -88,6 +109,21 @@ def add_word(message):
         json.dump(settings, f, indent=4, ensure_ascii=False)
     bot.send_message(message.chat.id, f"<b>Слово добавлено</b> ✅",
                      reply_markup=markups.to_settings_markup())
+
+
+def add_model_handler(message):
+    model = message.text.replace(" ", "")
+    if fnmatch(model, "*/*"):
+        with open("settings.json") as f:
+            settings = json.load(f)
+        settings['models']['all'].append(model)
+        # Запись новых настроек
+        with open("settings.json", "w") as f:
+            json.dump(settings, f, indent=4, ensure_ascii=False)
+        bot.send_message(message.chat.id, f"Модель <b>добавлена</b> ✅", reply_markup=markups.to_settings_markup())
+    else:
+        bot.send_message(message.chat.id, f"<b>Невалидная модель <i>СМ. ПРИМЕР</i></b>", reply_markup=markups.to_settings_markup())
+        bot.register_next_step_handler(message, add_model_handler)
 
 
 bot.polling(none_stop=True, interval=0)

@@ -19,14 +19,22 @@ def settings_markup(settings):
     else:
         btn1 = InlineKeyboardButton("Анимация смеха (ВЫКЛ ❌)", callback_data="settings_laughter")
 
-    btn2 = InlineKeyboardButton("Изменить модель для text2text", callback_data="edit_model_1")
-    btn3 = InlineKeyboardButton("Изменить модель для img2text", callback_data="edit_model_2")
+    btn2 = InlineKeyboardButton("Модель text2text", callback_data="edit_model_1")
+    btn3 = InlineKeyboardButton("Модель img2text", callback_data="edit_model_2")
+    btn4 = InlineKeyboardButton("Добавить модель ИИ", callback_data="add_model")
 
-    btn4 = InlineKeyboardButton("Анимированные слова", callback_data="animated_words")
+    if settings['send_deleted_messages']:
+        btn5 = InlineKeyboardButton("Удалённые сообщения (ВКЛ ✅)", callback_data="deleted_messages")
+    else:
+        btn5 = InlineKeyboardButton("Удалённые сообщения (ВЫКЛ ❌)", callback_data="deleted_messages")
 
-    markup.add(btn1, btn4)
-    markup.add(btn2)
-    markup.add(btn3)
+    btn6 = InlineKeyboardButton("Анимированные слова", callback_data="animated_words")
+
+    markup.add(btn1)
+    markup.add(btn6)
+    markup.add(btn5)
+    markup.add(btn2, btn3)
+    markup.add(btn4)
 
     return markup
 

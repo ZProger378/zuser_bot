@@ -6,6 +6,8 @@ from time import sleep
 # Для работы с настройками
 import json
 
+import requests
+
 # Клавиатуры
 import markups
 
@@ -22,8 +24,9 @@ from collections import defaultdict
 from copy import deepcopy
 
 # Мои модули
-from config import kandinsky_api as kandinsky, user, bot, message_store
+from config import user, bot, message_store
 from chatbot import chatbot
+from monster import generate_image
 from image_upload import upload_photo
 
 # Для сравнения слов
@@ -108,15 +111,14 @@ def chat_handler(client, message):
 
 
 
-# Kandinsky
+# MonsterAPI 
 @user.on_message(filters.command(["img", "gen", "сгенерировать", "изображение", "картинка"]) & filters.me)
 def kandinsky_handler(client, message):
     """
-    Самая бесполезная функция, а именно - генерация картинки кандинским
+    Самая бесполезная функция, а именно - генерация картинки 
 
     P.S.
-    Цензуры вроде как нет, но на чувствительных промптах вместо картинки присылает героиновый приход.
-    Ну а тян с сиськами спокойно рисует
+    Переехал с Кандинского на МонстерАПИ, так как Кандинский перестал работать, да и качество генерации было ну таким
     """
     if message.reply_to_message_id is not None:  # Если сообщение - ответ
         mes = user.get_messages(message.chat.id, message.reply_to_message_id)
@@ -129,8 +131,11 @@ def kandinsky_handler(client, message):
     except FloodWait as e:
         sleep(e.x)
     # Генерация изображения
-    req = kandinsky.generate_image(prompt)
+    req = generate_image(prompt)
     if req is not None:  # Успешная генерация
+        r = requests.get(req[0])
+        with open("downloads/0.png", "wb") as f:
+            f.write(r.content)
         user.delete_messages(message.chat.id, message.id)
         user.send_photo(message.chat.id, "downloads/0.png", prompt)
         os.remove("downloads/0.png")  # Удаление сгенерированной картинки с сервера
@@ -406,31 +411,45 @@ def bot_handler(client, message):
             bot.send_message(user_id, info, reply_markup=markups.main_markup())
 
     elif command == "Тест ИИ-функций 🟢":
-        mes = bot.send_message(user_id, f"<b>Проверка работоспособности ИИ-функций</b>\n\n<b>Запрос к ИИ (без картинки):</b> <i>Загрузка</i>\n<b>Запрос к ИИ (с картинкой):</b> <i>Загрузка</i>\n<b>Kandinsky:</b> <i>Загрузка</i>")
+        mes = bot.send_message(user_id, f"<b>Проверка работоспособности ИИ-функций</b>\n\n"
+                                        f"<b>Запрос к ИИ (без картинки):</b> <i>Загрузка</i>\n"
+                                        f"<b>Запрос к ИИ (с картинкой):</b> <i>Загрузка</i>\n"
+                                        f"<b>MonsterAPI:</b> <i>Загрузка</i>")
+        # Тест модели без картинки
         try:
             chatbot("hi", None)
         except:
             test_1 = False
         else:
             test_1 = True
+        # Обновляю сообщение
         bot.edit_message_text(chat_id=mes.chat.id, message_id=mes.id,
-                              text=f"<b>Проверка работоспособности ИИ-функций</b>\n\n<b>Запрос к ИИ (без картинки):</b> <i>{'OK' if test_1 else 'ERROR'}</i>\n<b>Запрос к ИИ (с картинкой):</b> <i>Загрузка</i>\n<b>Kandinsky:</b> <i>Загрузка</i>")
+                              text=f"<b>Проверка работоспособности ИИ-функций</b>\n\n"
+                                   f"<b>Запрос к ИИ (без картинки):</b> <i>{'OK' if test_1 else 'ERROR'}</i>\n"
+                                   f"<b>Запрос к ИИ (с картинкой):</b> <i>Загрузка</i>\n"
+                                   f"<b>MonsterAPI:</b> <i>Загрузка</i>")
+        # Тест модели с картинкой
         try:
             chatbot("hi", "https://memchik.ru//images/memes/61994612b1c7e34675112608.jpg")
         except:
             test_2 = False
         else:
             test_2 = True
+        # Обновляю сообщение
         bot.edit_message_text(chat_id=mes.chat.id, message_id=mes.id,
-                              text=f"<b>Проверка работоспособности ИИ-функций</b>\n\n<b>Запрос к ИИ (без картинки):</b> <i>{'OK' if test_1 else 'ERROR'}</i>\n<b>Запрос к ИИ (с картинкой):</b> <i>{'OK' if test_2 else 'ERROR'}</i>\n<b>Kandinsky:</b> <i>Загрузка</i>")
-        try:
-            kandinsky.generate_image("blue sky")
-        except:
-            test_3 = False
-        else:
-            test_3 = True
+                              text=f"<b>Проверка работоспособности ИИ-функций</b>\n\n"
+                                   f"<b>Запрос к ИИ (без картинки):</b> <i>{'OK' if test_1 else 'ERROR'}</i>\n"
+                                   f"<b>Запрос к ИИ (с картинкой):</b> <i>{'OK' if test_2 else 'ERROR'}</i>\n"
+                                   f"<b>MonsterAPI:</b> <i>Загрузка</i>")
+        # Тест генерации изображения
+        res = generate_image("blue sky")
+        test_3 = True if res else False
+        # Обновляю сообщение и вывожу результат каждого тестирования
         bot.edit_message_text(chat_id=mes.chat.id, message_id=mes.id,
-                              text=f"<b>Проверка работоспособности ИИ-функций</b>\n\n<b>Запрос к ИИ (без картинки):</b> <i>{'OK' if test_1 else 'ERROR'}</i>\n<b>Запрос к ИИ (с картинкой):</b> <i>{'OK' if test_2 else 'ERROR'}</i>\n<b>Kandinsky:</b> <i>{'OK' if test_3 else 'ERROR'}</i>")
+                              text=f"<b>Проверка работоспособности ИИ-функций</b>\n\n"
+                                   f"<b>Запрос к ИИ (без картинки):</b> <i>{'OK' if test_1 else 'ERROR'}</i>\n"
+                                   f"<b>Запрос к ИИ (с картинкой):</b> <i>{'OK' if test_2 else 'ERROR'}</i>\n"
+                                   f"<b>MonsterAPI:</b> <i>{'OK' if test_3 else 'ERROR'}</i>")
 
 
     elif command == "Скачать логи 📑":
@@ -510,8 +529,11 @@ def handle_deleted_messages(client, messages):
     """
     Перебирает удаленные сообщения, и если они сохранены в словаре, то бот скинет их в лс
     """
+    with open("settings.json") as f:
+        settings = json.load(f)
+
     for message in messages:
-        if message and message.id in message_store:
+        if message and message.id in message_store and settings['send_deleted_messages']:
             deleted_message = message_store.pop(message.id)
             bot.send_message(user.get_me().id, f"<b>Удаленное сообщение</b>\n\n"
                                                f"<b>Чат</b>: <code>{deleted_message['chat_id']}</code>\n"

@@ -7,12 +7,12 @@ phone_number = номер_телефона
 [TeleBot]
 bot_token = токен_бота_полученный_у_бот_фатхера
 
-[OpenRouter]
-api_key = sk-or-токен_опероутера
+[HuggingFace]
+provider = fireworks-ai
+api_key = токен-из-huggingface
 
-[Kandinsky]
-api_key = ключ_кандинского
-secret_key = секрет_кандинского
+[MonsterAPI]
+api_key = ключ
 
 [imgBB]
 api_key = ключ_imgbb
