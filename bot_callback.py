@@ -26,9 +26,10 @@ def callback(call):
         reply_markup=markups.settings_markup(settings))
 
     elif data == "animated_words":
+        animated = '\n'.join([f'<b>{x+1})</b> <code>{i}</code>' for x, i in enumerate(animated_words)])
         bot.edit_message_text(chat_id=message.chat.id, message_id=message.id,
                               text="<b>Анимированные слова</b>\n\n"
-                                   f"{'\n'.join([f'<b>{x+1})</b> <code>{i}</code>' for x, i in enumerate(animated_words)])}",
+                                   f"{animated}",
                               reply_markup=markups.words_markup())
 
     elif data == "add_words":
