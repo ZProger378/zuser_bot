@@ -8,3 +8,4 @@ downloads/*
 *.session-journal
 pyrightconfig.json
 venv
+settings.json

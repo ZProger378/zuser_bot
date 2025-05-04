@@ -50,6 +50,10 @@ def callback(call):
         bot.edit_message_text(chat_id=message.chat.id, message_id=message.id,
                               text=f"<b>Слово удалено</b> ✅",
                               reply_markup=markups.to_settings_markup())
+    elif data == "ai_settings":
+        bot.edit_message_text(chat_id=message.chat.id, message_id=message.id,
+                              text=f"<b>Настройки ИИ-функций</b>",
+                              reply_markup=markups.ai_settings_markup(hf_conf['provider']))
     elif data.startswith("edit_model_"):
         # Получение конкретной позиции в настройках
         model = f"current_model_{data.split('_')[-1]}"
@@ -100,7 +104,7 @@ def callback(call):
 
 
 def add_word(message):
-    word = message.text
+    word = message.text.lower()  # Приведение слова к нижнему регистру
     with open("settings.json") as f:
         settings = json.load(f)
     settings['animation']['animated_words'].append(word)  # Добавление слова

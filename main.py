@@ -38,8 +38,6 @@ from fuzzywuzzy import fuzz
 # Привет, друг, если ты сюда зашел, значит тебе либо нехуй делать, либо ты мне не доверяешь. И ничего в этом нет. #
 # Я бы себе тоже не доверял =)                                                                                    #
 # Изначально я лишь хотел встроить ИИ в телеграм, но потом как-то закрутилось. Крч удачи здесь что-то понять.     #
-# P.S. Хочу отсосать Альтману за то, что его ГПТ мне пару раз код рефакторил, ибо тут вообще пиздец был.          #
-# U.D. Судя по тому, что я узнал, Альтман против не будет. Ебанные миллиардеры, они там в своей долине все такие? #
 ###################################################################################################################
 
 
@@ -113,7 +111,7 @@ def chat_handler(client, message):
 
 # MonsterAPI 
 @user.on_message(filters.command(["img", "gen", "сгенерировать", "изображение", "картинка"]) & filters.me)
-def kandinsky_handler(client, message):
+def image_generation_handler(client, message):
     """
     Самая бесполезная функция, а именно - генерация картинки 
 
@@ -501,7 +499,7 @@ def message_handler(client, message):
                 bigs = {randint(0, len(text) - 1) for _ in range(int(len(text) // 1.2))}
                 new_text = "".join(f"**{char.upper()}**" if idx in bigs else char for idx, char in enumerate(text))
                 edit_message(message, new_text)
-                sleep(0.7)
+                sleep(1)
 
         elif unique_chars in settings['animation']['animated_words']:
             # Эффект покачивания текста
@@ -538,17 +536,18 @@ def handle_deleted_messages(client, messages):
             bot.send_message(user.get_me().id, f"<b>Удаленное сообщение</b>\n\n"
                                                f"<b>Чат</b>: <code>{deleted_message['chat_id']}</code>\n"
                                                f"<b>Юзер</b>: <code>{deleted_message['sender']}</code>\n"
-                                               f"<b>Текст</b>: <code>{deleted_message['text']}</code>")
+                                               f"<b>Текст</b>: <pre>{deleted_message['text']}</pre>")
 
 
 # Редактирует сообщение
 def edit_message(message, new_text):
     """Функция редактирования текста или подписи к медиа."""
     try:
-        if message.media is None:
-            user.edit_message_text(message.chat.id, message.id, new_text)
-        else:
-            user.edit_message_caption(message.chat.id, message.id, new_text)
+        if message.text != new_text:
+            if message.media is None:
+                user.edit_message_text(message.chat.id, message.id, new_text)
+            else:
+                user.edit_message_caption(message.chat.id, message.id, new_text)
     except FloodWait as e:
         sleep(e.x)
 
